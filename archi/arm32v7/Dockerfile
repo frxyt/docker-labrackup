@@ -2,8 +2,11 @@
 # Copyright (c) 2019 Jérémy WALTHER <jeremy.walther@golflima.net>
 # See <https://github.com/frxyt/docker-labrackup> for details.
 
+FROM multiarch/qemu-user-static:register AS qemu
+
 FROM arm32v7/debian:stable-slim
-COPY /usr/bin/qemu-arm-static /usr/bin
+
+COPY --from=qemu /usr/bin/qemu-arm-static /usr/bin
 
 LABEL maintainer="Jérémy WALTHER <jeremy@ferox.yt>"
 
