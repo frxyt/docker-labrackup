@@ -7,17 +7,12 @@ FROM ${FRX_DOCKER_FROM}
 
 LABEL maintainer="Jérémy WALTHER <jeremy@ferox.yt>"
 
-ENV MINECRAFT_BACKUP_FTP_HOST= \
-    MINECRAFT_BACKUP_FTP_PASS= \
-    MINECRAFT_BACKUP_FTP_PORT= \
-    MINECRAFT_BACKUP_FTP_USER=
+ENV LABRACKUP_CONF_FILE=/labrackup/backups.yml
 
 COPY ./build ./Dockerfile ./LICENSE ./README.md  /frx/
 
 RUN /frx/build
 
-EXPOSE 80
-
 VOLUME [ "/labrackup" ]
 
-CMD [ "/frx/start" ]
+CMD [ "/frx/start" "${LABRACKUP_CONF_FILE}" ]

@@ -21,7 +21,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y --fix-missing --no-install-rec
 # Install required python tools
 pip install setuptools
 pip install rotate-backups
-pip install jq
+pip install yq
 
 # Display versions
 cat /etc/debian_version

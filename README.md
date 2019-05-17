@@ -13,6 +13,37 @@
 
 **`frxyt/labrackup`**
 
+## Usage
+
+* `docker run -v $(pwd):/labrackup frxyt/labrackup:latest /labrackup/backups.yml`
+  * Sample content for `backups.yml`:
+
+    ```yml
+    .template:sample_host1: &template_sample_host1
+      remote_host: server.example.com
+      remote_port: 22
+      remote_user: labrackup
+      remote_keyfile: /labrackup/labrackup@server.example.com
+
+    backups:
+
+      gitlab:
+        <<: *template_sample_host1
+        remote_path: /data/gitlab/opt/backups
+        local_path: labrackup/backups/server.example.com/gitlab
+        local_rotate:
+          - -I '*_gitlab_backup.tar' -d 7 -w 4 -m 12
+          - -I '*_gitlab_config.tar.gz' -d 7 -w 4 -m 12
+    
+      grafana:
+        <<: *template_sample_host1
+        remote_path: /data/grafana/backups
+        local_path: labrackup/backups/server.example.com/grafana
+        local_rotate: -I '*_grafana-db.tar.gz' -d 7 -w 4 -m 12
+    ```
+
+  * Generate a key with: `ssh-keygen -b 4096 -f labrackup@server.example.com`
+
 ## License
 
 This project and images are published under the [MIT License](LICENSE).
