@@ -23,13 +23,10 @@ DARK_GRAY=$'\033[1;30m'
 LIGHT_RED=$'\033[1;31m'
 LIGHT_GREEN=$'\033[1;32m'
 LIGHT_BLUE=$'\033[1;34m'
-LIGHT_PURPLE=$'\033[1;35m'
-LIGHT_CYAN=$'\033[1;36m'
-LIGHT_GRAY=$'\033[0;37m';
 
 # Declare needed functions
 function die() {
-    echo -e "[!] ${LIGHT_RED}$1${NC}"
+    echo -e "${LIGHT_RED}[!] $1${NC}"
     exit 1;
 }
 
@@ -43,6 +40,10 @@ function trace_start() {
 
 function trace_end() {
     echo -en "${NC}"
+}
+
+function success() {
+    echo -e "${LIGHT_GREEN}$1${NC}"
 }
 
 function get_backup_conf() {
@@ -98,8 +99,7 @@ function perform_backup() {
     fi
     local rotate_option
     for rotate_option in "${local_rotate[@]}"; do
-        echo "rotate-backups ${rotate_option} ${local_path}"
-        rotate-backups ${rotate_option} ${local_path}
+        eval "rotate-backups ${rotate_option} ${local_path}"
     done
 }
 
@@ -133,7 +133,7 @@ for backup in "${backup_list[@]}"; do
     echo
 done
 
-echo "Done."
+success "Done."
 
 # Remove error handling
 trap - ERR
