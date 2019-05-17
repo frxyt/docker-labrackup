@@ -30,7 +30,7 @@
       gitlab:
         <<: *template_sample_host1
         remote_path: /data/gitlab/opt/backups
-        local_path: labrackup/backups/server.example.com/gitlab
+        local_path: /labrackup/backups/server.example.com/gitlab
         local_rotate:
           - -I '*_gitlab_backup.tar' -d 7 -w 4 -m 12
           - -I '*_gitlab_config.tar.gz' -d 7 -w 4 -m 12
@@ -38,7 +38,7 @@
       grafana:
         <<: *template_sample_host1
         remote_path: /data/grafana/backups
-        local_path: labrackup/backups/server.example.com/grafana
+        local_path: /labrackup/backups/server.example.com/grafana
         local_rotate: -I '*_grafana-db.tar.gz' -d 7 -w 4 -m 12
     ```
 
