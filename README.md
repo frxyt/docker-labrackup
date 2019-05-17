@@ -44,6 +44,12 @@
 
   * Generate a key with: `ssh-keygen -b 4096 -f labrackup@server.example.com`
 
+## Build
+
+```sh
+docker build -t frxyt/labrackup:latest .
+```
+
 ## License
 
 This project and images are published under the [MIT License](LICENSE).
