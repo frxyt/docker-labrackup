@@ -1,0 +1,5 @@
+labrackup:
+  image: frxyt/docker-labrackup:latest
+  command: /labrackup/backups.yml
+  volumes:
+    - ./labrackup:/labrackup

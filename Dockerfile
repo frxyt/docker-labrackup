@@ -15,4 +15,6 @@ RUN /frx/build
 
 VOLUME [ "/labrackup" ]
 
-CMD [ "/frx/start" "${LABRACKUP_CONF_FILE}" ]
+ENTRYPOINT [ "/frx/start" ]
+
+CMD [ "${LABRACKUP_CONF_FILE}" ]
