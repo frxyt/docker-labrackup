@@ -89,6 +89,7 @@ function perform_backup() {
     local local_path="$(get_backup_conf ${backup} local_path)"
     mkdir -p ${local_path}
     cat ${remote_keyfile} | ssh-add -k -
+    ssh-keyscan -p ${remote_port} ${remote_host} >> ~/.ssh/known_hosts
     rsync -ave "ssh -p ${remote_port}" ${remote_user}@${remote_host}:${remote_path}/ ${local_path}/
     local local_rotate_type="$(get_backup_conf_type ${backup} local_rotate)"
     local local_rotate
@@ -110,6 +111,8 @@ if [[ ! -f "${conf_file}" ]]; then
 fi
 
 # Start SSH Agent
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
 eval $(ssh-agent) > /dev/null
 
 # List all backups
