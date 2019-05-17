@@ -3,7 +3,7 @@
 # See <https://github.com/frxyt/docker-labrackup> for details.
 
 FROM arm32v7/debian:stable-slim
-COPY qemu-arm-static /usr/bin
+COPY /usr/bin/qemu-arm-static /usr/bin
 
 LABEL maintainer="Jérémy WALTHER <jeremy@ferox.yt>"
 
