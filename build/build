@@ -13,10 +13,11 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y --fix-missing --no-install-rec
     build-essential \
     curl \
     jq \
+    openssh-client \
     python-pip \
     rename \
     rsync \
-    vim
+    sshpass
 
 # Install required python tools
 pip install setuptools
