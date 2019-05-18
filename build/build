@@ -11,9 +11,9 @@ DEBIAN_FRONTEND=noninteractive apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --fix-missing --no-install-recommends \
     apt-utils \
     build-essential \
-    curl \
     jq \
     openssh-client \
+    python \
     python-pip \
     rename \
     rsync \
@@ -23,6 +23,13 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y --fix-missing --no-install-rec
 pip install setuptools
 pip install rotate-backups
 pip install yq
+
+# Remove build-only packages
+DEBIAN_FRONTEND=noninteractive apt-get remove --purge -y \
+    apt-utils \
+    build-essential \
+    python-pip
+DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
 
 # Clean APT cache
 apt-get clean -y && apt-get clean -y && apt-get autoclean -y && rm -r /var/lib/apt/lists/*

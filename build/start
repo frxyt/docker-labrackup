@@ -9,7 +9,7 @@ set -eE
 
 # Handle errors
 function trap_err() {
-    die "[!] Error: /frx/start:$1"
+    die "Fatal Error: /frx/start:$1"
 }
 trap 'trap_err $LINENO' ERR
 

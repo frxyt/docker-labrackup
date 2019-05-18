@@ -55,7 +55,8 @@
 1. Add your private key or generate it: `ssh-keygen -b 4096 -f backups.key`
 1. `docker run -v $(pwd):/labrackup frxyt/labrackup:arm32v7` (if you have an ARMv8 CPU, you can use `arm64v8` instead)
 1. Add an hourly cron with: `crontab -e`
-   `0 * * * * /usr/bin/docker run -v /labrackup:/labrackup frxyt/labrackup:arm32v7 >> /labrackup/backups.log 2>&1`
+
+   `0 * * * * /usr/bin/docker run -v /labrackup:/labrackup frxyt/labrackup:arm32v7 /labrackup/backups.yml >> /labrackup/backups.log 2>&1`
 
 ## Build
 

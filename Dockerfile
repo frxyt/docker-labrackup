@@ -6,16 +6,14 @@ ARG FRX_DOCKER_FROM=debian:stable-slim
 FROM ${FRX_DOCKER_FROM}
 
 LABEL maintainer="Jérémy WALTHER <jeremy@ferox.yt>"
-
 ENV LABRACKUP_CONF_FILE=/labrackup/backups.yml \
     TERM=xterm-256color
 
 COPY ./build ./Dockerfile ./LICENSE ./README.md  /frx/
-
 RUN /frx/build
 
 VOLUME [ "/labrackup" ]
+WORKDIR /labrackup
 
 ENTRYPOINT [ "/frx/start" ]
-
 CMD "${LABRACKUP_CONF_FILE}"
