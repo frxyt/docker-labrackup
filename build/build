@@ -24,5 +24,8 @@ pip install setuptools
 pip install rotate-backups
 pip install yq
 
+# Clean APT cache
+apt-get clean -y && apt-get clean -y && apt-get autoclean -y && rm -r /var/lib/apt/lists/*
+
 # Display versions
 cat /etc/debian_version

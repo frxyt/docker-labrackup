@@ -47,7 +47,10 @@
 ## Build
 
 ```sh
-docker build -t frxyt/labrackup:latest .
+docker run --rm --privileged multiarch/qemu-user-static:register --reset
+docker build -f Dockerfile              -t frxyt/labrackup:latest .
+docker build -f arch/amd64/Dockerfile   -t frxyt/labrackup:latest .
+docker build -f arch/arm32v7/Dockerfile -t frxyt/labrackup:latest .
 ```
 
 ## License
