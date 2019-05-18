@@ -6,12 +6,18 @@
 ![GitHub issues](https://img.shields.io/github/issues/frxyt/docker-labrackup.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/frxyt/docker-labrackup.svg)
 
+Labrackup helps you to retrieve backups of multiple servers / services and to perform a local backup rotation.
+
 * Docker Hub: https://hub.docker.com/r/frxyt/labrackup
 * GitHub: https://github.com/frxyt/docker-labrackup
 
 ## Docker Hub Image
 
 **`frxyt/labrackup`**
+
+* amd64: **`frxyt/labrackup:latest`**, **`frxyt/labrackup:amd64`**
+* arm32v7: **`frxyt/labrackup:arm32v7`**
+* arm64v8: **`frxyt/labrackup:arm64v8`**
 
 ## Usage
 
