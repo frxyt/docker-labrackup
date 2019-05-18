@@ -15,7 +15,9 @@
 
 ## Usage
 
+* `docker run -v $(pwd):/labrackup frxyt/labrackup:latest`
 * `docker run -v $(pwd):/labrackup frxyt/labrackup:latest /labrackup/backups.yml`
+* `docker run -v $(pwd):/labrackup -e LABRACKUP_CONF_FILE=/labrackup/backups.yml frxyt/labrackup:latest`
   * Sample content for `backups.yml`:
 
     ```yml
@@ -44,6 +46,37 @@
 
   * Generate a key with: `ssh-keygen -b 4096 -f labrackup@server.example.com`
 
+### Structure of `backups.yml`
+
+```yml
+backups: # base node
+
+  gitlab: # Name of the first backup
+    remote_host: server1.example.com # IP or Hostname of the server
+    remote_port: 22 # SSH Port
+    remote_user: labrackup # SSH User
+    remote_keyfile: /labrackup/labrackup@server1.example.com # SSH Private key to use
+    remote_path: /data/gitlab/opt/backups # Remote path where backup are stored
+    local_path: /labrackup/backups/gitlab.ferox.yt/gitlab # Local path where backups need to be retrieved
+    local_rotate: # rotate-backup options, see bellow, as an array if multiples rotates must be performed
+      - -I '*_gitlab_backup.tar' -d 7 -w 4 -m 12
+      - -I '*_gitlab_config.tar.gz' -d 7 -w 4 -m 12
+
+  grafana: # Name of the second backup
+    remote_host: server2.example.com
+    remote_port: 22
+    remote_user: labrackup
+    remote_keyfile: /labrackup/labrackup@server2.example.com
+    remote_path: /data/grafana/backups
+    local_path: /labrackup/backups/gitlab.ferox.yt/grafana
+    local_rotate: -I '*_grafana-db.tar.gz' -d 7 -w 4 -m 12 # rotate-backup options,
+    # or as a string if only one rotation must be performed
+  
+  # Add as many backup sections as needed
+```
+
+* For all `local_rotate` options, see: https://rotate-backups.readthedocs.io/en/latest/readme.html#command-line
+
 ## Install Labrackup on ARM Server / Raspberry Pi
 
 1. `ssh user@server.ip`, then, `sudo -s`
@@ -56,7 +89,7 @@
 1. `docker run -v $(pwd):/labrackup frxyt/labrackup:arm32v7` (if you have an ARMv8 CPU, you can use `arm64v8` instead)
 1. Add an hourly cron with: `crontab -e`
 
-   `0 * * * * /usr/bin/docker run -v /labrackup:/labrackup frxyt/labrackup:arm32v7 /labrackup/backups.yml >> /labrackup/backups.log 2>&1`
+   `0 * * * * /usr/bin/docker run -v /labrackup:/labrackup frxyt/labrackup:arm32v7 >> /labrackup/backups.log 2>&1`
 
 ## Build
 

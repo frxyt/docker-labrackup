@@ -1,5 +1,7 @@
 labrackup:
   image: frxyt/labrackup:latest
-  command: /labrackup/backups.yml
+  #command: /labrackup/backups.yml
+  #environment:
+  #  - LABRACKUP_CONF_FILE=/labrackup/backups.yml
   volumes:
     - ./labrackup:/labrackup

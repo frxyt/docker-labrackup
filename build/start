@@ -118,10 +118,11 @@ info "[FEROX Labrackup: https://github.com/frxyt/docker-labrackup]"
 echo
 
 # Check configuration file
-declare -r conf_file="$1"
+declare -r conf_file="${1:-${LABRACKUP_CONF_FILE}}"
 if [[ ! -f "${conf_file}" ]]; then
     die "Configuration file not found: '${conf_file}'."
 fi
+trace "Configuration file loaded: '${conf_file}'."
 
 # Start SSH Agent
 mkdir -p ~/.ssh
