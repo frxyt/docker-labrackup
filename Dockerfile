@@ -18,4 +18,4 @@ VOLUME [ "/labrackup" ]
 
 ENTRYPOINT [ "/frx/start" ]
 
-CMD [ "${LABRACKUP_CONF_FILE}" ]
+CMD "${LABRACKUP_CONF_FILE}"
