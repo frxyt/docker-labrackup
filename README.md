@@ -44,14 +44,27 @@
 
   * Generate a key with: `ssh-keygen -b 4096 -f labrackup@server.example.com`
 
+## Install Labrackup on ARM Server / Raspberry Pi
+
+1. `ssh user@server.ip`, then, `sudo -s`
+1. `apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade -y`
+1. `apt-get install -y --fix-missing --install-recommends apt-transport-https apt-utils curl nano`
+1. `curl -sSL https://get.docker.com | sh`
+1. `mkdir /labrackup && cd /labrackup`
+1. Create a `backups.yml` describing the services to backup: `nano backups.yml`
+1. Add your private key or generate it: `ssh-keygen -b 4096 -f backups.key`
+1. `docker run -v $(pwd):/labrackup frxyt/labrackup:arm32v7` (if you have an ARMv8 CPU, you can use `arm64v8` instead)
+1. Add an hourly cron with: `crontab -e`
+   `0 * * * * /usr/bin/docker run -v /labrackup:/labrackup frxyt/labrackup:arm32v7 >> /labrackup/backups.log 2>&1`
+
 ## Build
 
 ```sh
 docker run --rm --privileged multiarch/qemu-user-static:register --reset
-docker build -f Dockerfile              -t frxyt/labrackup:latest .
-docker build -f arch/amd64/Dockerfile   -t frxyt/labrackup:latest .
-docker build -f arch/arm32v7/Dockerfile -t frxyt/labrackup:latest .
-docker build -f arch/arm64v8/Dockerfile -t frxyt/labrackup:latest .
+docker build -f Dockerfile              -t frxyt/labrackup:latest  .
+docker build -f arch/amd64/Dockerfile   -t frxyt/labrackup:amd64   .
+docker build -f arch/arm32v7/Dockerfile -t frxyt/labrackup:arm32v7 .
+docker build -f arch/arm64v8/Dockerfile -t frxyt/labrackup:arm64v8 .
 ```
 
 ## License
