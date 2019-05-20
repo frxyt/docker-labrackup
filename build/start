@@ -124,7 +124,7 @@ function display_disk_usage() {
     local usage_after="$(du -b ${local_path} | cut -f1)"
     local usege_diff_b="$((${usage_after} - ${usage_before}))"
     local usege_diff_p="$(((${usage_after} - ${usage_before}) * 100 / ${usage_before}))"
-    local usage_text="${local_path}"
+    local usage_text="${local_path}${spaces:0:$((${path_length_max} - ${#local_path}))}"
     usage_text="${usage_text}\t$(echo ${usage_before} | numfmt --to=iec --suffix=B)"
     usage_text="${usage_text}\t$(echo ${usage_after} | numfmt --to=iec --suffix=B)"
     usage_text="${usage_text}\t$(echo ${usege_diff_b} | numfmt --to=iec --suffix=B)"
@@ -175,7 +175,9 @@ info "Total disk space usage:"
 df -h "${local_path_list[@]}" | uniq | trace_cmd
 echo
 info "Disk space usage per backup:"
-trace "path\tbefore\tafter\tdiff\t%"
+declare -i path_length_max=$(for i in "Backup path" "${local_path_list[@]}"; do echo ${#i}; done | sort -n | tail -1)
+declare -r spaces="$(head -c ${path_length_max} < /dev/zero | tr '\0' ' ')"
+trace "Backup path${spaces:0:$((${path_length_max} - 11))}\tBefore\tAfter\tDiff\t%"
 for local_path in "${local_path_list[@]}"; do
     display_disk_usage ${local_path}
 done
