@@ -26,17 +26,21 @@ if [[ "$(tput colors 2> /dev/null)" == -1 || "$?" != 0 ]]; then
 fi
 
 # Declare needed functions
+function echo_dated() {
+    echo -e $2 "${DARK_GRAY}[$(date +'%F %T')]${NC} $1${NC}"
+}
+
 function die() {
-    echo -e "${LIGHT_RED}[!] $1${NC}" >&2
+    echo_dated "${LIGHT_RED}[!] $1" >&2
     exit 1;
 }
 
 function info() {
-    echo -e "${LIGHT_BLUE}$1${NC}"
+    echo_dated "${LIGHT_BLUE}$1"
 }
 
 function trace() {
-    echo -e "${DARK_GRAY}$1${NC}"
+    echo_dated "${DARK_GRAY}$1"
 }
 
 function trace_cmd() {
@@ -46,7 +50,7 @@ function trace_cmd() {
 }
 
 function success() {
-    echo -e "${LIGHT_GREEN}$1${NC}"
+    echo_dated "${LIGHT_GREEN}$1"
 }
 
 function get_backup_conf() {
@@ -91,13 +95,13 @@ function perform_backup() {
     local remote_path="$(get_backup_conf ${backup} remote_path)"
     local local_path="$(get_backup_conf ${backup} local_path)"
     mkdir -p ${local_path}
-    echo -n "Configuring SSH... "
+    echo_dated "Configuring SSH... " -n
     cat ${remote_keyfile} | ssh-add -k - >> /frx/start.log 2>&1
     ssh-keyscan -p ${remote_port} ${remote_host} 1>> ~/.ssh/known_hosts 2>> /frx/start.log
     echo "[OK]"
-    echo "Retrieving remote backups..."
+    echo_dated "Retrieving remote backups..."
     rsync -ave "ssh -p ${remote_port}" ${remote_user}@${remote_host}:${remote_path}/ ${local_path}/ 2>> /frx/start.log | trace_cmd
-    echo "Rotating local backups..."
+    echo_dated "Rotating local backups..."
     local local_rotate_type="$(get_backup_conf_type ${backup} local_rotate)"
     local local_rotate
     if [[ "${local_rotate_type}" == "string" ]]; then
@@ -107,9 +111,9 @@ function perform_backup() {
     fi
     local rotate_option
     for rotate_option in "${local_rotate[@]}"; do
-        eval "rotate-backups ${rotate_option} ${local_path}" 2>&1 | trace_cmd
+        eval "rotate-backups ${rotate_option} ${local_path}" 2>&1 | sed 's/^[^[]*\[[0-9]*\] //g' | trace_cmd
     done
-    echo -n "Listing backuped files in "
+    echo_dated "Listing backuped files in '${local_path}':" 
     ls -AshR ${local_path} | trace_cmd
 }
 
@@ -134,7 +138,7 @@ declare -a backup_list
 mapfile -t backup_list < <(yq -Mr '.backups | keys[]' ${conf_file})
 info "Configured backups: "
 for backup in "${backup_list[@]}"; do
-    echo "- ${backup}"
+    echo_dated "- ${backup}"
     check_backup_conf ${backup}
 done
 echo
@@ -148,6 +152,13 @@ for backup in "${backup_list[@]}"; do
     echo
 done
 
+# Display disk space usage for each backup filesystems
+declare -a local_path_list
+mapfile -t local_path_list < <(yq -Mr '.backups[].local_path' ${conf_file})
+info "Disk space usage:"
+df -h "${local_path_list[@]}" | uniq | trace_cmd
+
+echo
 success "Done."
 
 # Remove error handling

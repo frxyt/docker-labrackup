@@ -10,9 +10,9 @@ LABEL maintainer="Jérémy WALTHER <jeremy@ferox.yt>"
 ENV LABRACKUP_CONF_FILE=/labrackup/backups.yml \
     TERM=xterm-256color
 
-COPY ./build /frx
+COPY ./build/build /frx/build
 RUN /frx/build
-COPY ./Dockerfile ./LICENSE ./README.md /frx/
+COPY ./build/start ./Dockerfile ./LICENSE ./README.md /frx/
 
 VOLUME [ "/labrackup" ]
 WORKDIR /labrackup

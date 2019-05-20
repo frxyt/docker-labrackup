@@ -21,9 +21,9 @@ Labrackup helps you to retrieve backups of multiple servers / services and to pe
 
 ## Usage
 
-* `docker run -v $(pwd):/labrackup frxyt/labrackup:latest`
-* `docker run -v $(pwd):/labrackup frxyt/labrackup:latest /labrackup/backups.yml`
-* `docker run -v $(pwd):/labrackup -e LABRACKUP_CONF_FILE=/labrackup/backups.yml frxyt/labrackup:latest`
+* `docker run --rm -v $(pwd):/labrackup frxyt/labrackup:latest`
+* `docker run --rm -v $(pwd):/labrackup frxyt/labrackup:latest /labrackup/backups.yml`
+* `docker run --rm -v $(pwd):/labrackup -e LABRACKUP_CONF_FILE=/labrackup/backups.yml frxyt/labrackup:latest`
   * Sample content for `backups.yml`:
 
     ```yml
@@ -92,10 +92,10 @@ backups: # base node
 1. `mkdir /labrackup && cd /labrackup`
 1. Create a `backups.yml` describing the services to backup: `nano backups.yml`
 1. Add your private key or generate it: `ssh-keygen -b 4096 -f backups.key`
-1. `docker run -v $(pwd):/labrackup frxyt/labrackup:arm32v7` (if you have an ARMv8 CPU, you can use `arm64v8` instead)
+1. `docker run --rm -v $(pwd):/labrackup frxyt/labrackup:arm32v7` (if you have an ARMv8 CPU, you can use `arm64v8` instead)
 1. Add an hourly cron with: `crontab -e`
 
-   `0 * * * * /usr/bin/docker run -v /labrackup:/labrackup frxyt/labrackup:arm32v7 >> /labrackup/backups.log 2>&1`
+   `0 * * * * /usr/bin/docker run --rm -v /labrackup:/labrackup frxyt/labrackup:arm32v7 >> /labrackup/backups.log 2>&1`
 
 ## Build
 
