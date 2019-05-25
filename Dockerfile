@@ -7,6 +7,7 @@ FROM ${FRX_DOCKER_FROM}
 
 LABEL maintainer="Jérémy WALTHER <jeremy@ferox.yt>"
 ENV LABRACKUP_CONF_FILE=/labrackup/backups.yml \
+    LABRACKUP_DEBUG=0 \
     TERM=xterm-256color
 
 COPY ./build/build /frx/build

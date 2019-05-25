@@ -9,7 +9,7 @@ set -eE
 
 # Handle errors
 function trap_err() {
-    die "Fatal Error: /frx/start:$1"
+    die "Fatal Error: /frx/start:$1$(((LABRACKUP_DEBUG)) && echo && sed "$1q;d" /frx/start)"
 }
 trap 'trap_err $LINENO' ERR
 
@@ -56,7 +56,7 @@ function success() {
 function get_backup_conf() {
     local backup="$1"
     local config="$2"
-    echo "$(yq -Mr ".backups.${backup}.${config}" ${conf_file})"
+    echo "$(yq -Mr ".backups.${backup}.${config} // empty" ${conf_file})"
 }
 
 function get_backup_conf_type() {
@@ -83,7 +83,7 @@ function check_backup_conf() {
     check_backup_conf_type ${backup} remote_keyfile string
     check_backup_conf_type ${backup} remote_path string
     check_backup_conf_type ${backup} local_path string
-    check_backup_conf_type ${backup} local_rotate 'string|array'
+    check_backup_conf_type ${backup} local_rotate array
 }
 
 function perform_backup() {
@@ -94,28 +94,36 @@ function perform_backup() {
     local remote_keyfile="$(get_backup_conf ${backup} remote_keyfile)"
     local remote_path="$(get_backup_conf ${backup} remote_path)"
     local local_path="$(get_backup_conf ${backup} local_path)"
+    local local_rotate; mapfile -t local_rotate < <(get_backup_conf ${backup} 'local_rotate[]')
+    local external_host="$(get_backup_conf ${backup} external_host)"
+    local external_port="$(get_backup_conf ${backup} external_port)"
+    local external_user="$(get_backup_conf ${backup} external_user)"
+    local external_keyfile="$(get_backup_conf ${backup} external_keyfile)"
+    local external_password="$(get_backup_conf ${backup} external_password)"
+    local external_path="$(get_backup_conf ${backup} external_path)"
     mkdir -p ${local_path}
     backup_path_size[${local_path}]=$(du -b ${local_path} | cut -f1)
     echo_dated "Configuring SSH... " -n
-    cat ${remote_keyfile} | ssh-add -k - >> /frx/start.log 2>&1
+    [[ -n "${remote_keyfile}" ]] && cat ${remote_keyfile} | ssh-add -k - >> /frx/start.log 2>&1
     ssh-keyscan -p ${remote_port} ${remote_host} 1>> ~/.ssh/known_hosts 2>> /frx/start.log
+    if [[ -n "${external_path}" ]]; then
+        [[ -n "${external_keyfile}" ]] && cat ${external_keyfile} | ssh-add -k - >> /frx/start.log 2>&1
+        ssh-keyscan -p ${external_port} ${external_host} 1>> ~/.ssh/known_hosts 2>> /frx/start.log
+    fi
     echo "[OK]"
     echo_dated "Retrieving remote backups..."
-    rsync -ave "ssh -p ${remote_port}" ${remote_user}@${remote_host}:${remote_path}/ ${local_path}/ 2>> /frx/start.log | trace_cmd
+    rsync -ahve "ssh -p ${remote_port}" ${remote_user}@${remote_host}:${remote_path}/ ${local_path}/ 2>> /frx/start.log | trace_cmd
     echo_dated "Rotating local backups..."
-    local local_rotate_type="$(get_backup_conf_type ${backup} local_rotate)"
-    local local_rotate
-    if [[ "${local_rotate_type}" == "string" ]]; then
-        local_rotate=("$(get_backup_conf ${backup} local_rotate)")
-    elif [[ "${local_rotate_type}" == "array" ]]; then
-        mapfile -t local_rotate < <(get_backup_conf ${backup} 'local_rotate[]')
-    fi
-    local rotate_option
+    local local_rotate_option
     for rotate_option in "${local_rotate[@]}"; do
         eval "rotate-backups ${rotate_option} ${local_path}" 2>&1 | sed 's/^[^[]*\[[0-9]*\] //g' | trace_cmd
     done
     echo_dated "Listing backuped files in '${local_path}':" 
     ls -AshR ${local_path} | trace_cmd
+    if [[ -n "${external_path}" ]]; then
+        echo_dated "Uploading backuped files to external host..."
+        sshpass -p "${external_password}" rsync -ahve "ssh -p ${external_port}" ${local_path}/ ${external_user}@${external_host}:${external_path}/ | trace_cmd
+    fi
 }
 
 function display_disk_usage() {

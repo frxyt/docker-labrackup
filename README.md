@@ -47,7 +47,7 @@ Labrackup helps you to retrieve backups of multiple servers / services and to pe
         <<: *template_sample_host1
         remote_path: /data/grafana/backups
         local_path: /labrackup/backups/server.example.com/grafana
-        local_rotate: -I '*_grafana-db.tar.gz' -d 7 -w 4 -m 12
+        local_rotate: ["-I '*_grafana-db.tar.gz' -d 7 -w 4 -m 12"]
     ```
 
   * Generate a key with: `ssh-keygen -b 4096 -f labrackup@server.example.com`
@@ -64,19 +64,9 @@ backups: # base node
     remote_keyfile: /labrackup/user1@server1.example.com # SSH Private key to use
     remote_path: /data/gitlab/opt/backups # Remote path where backup are stored
     local_path: /labrackup/backups/server1.example.com/gitlab # Local path where backups need to be retrieved
-    local_rotate: # rotate-backup options, see bellow, as an array if multiples rotates must be performed
+    local_rotate: # rotate-backup options
       - -I '*_gitlab_backup.tar' -d 7 -w 4 -m 12
       - -I '*_gitlab_config.tar.gz' -d 7 -w 4 -m 12
-
-  grafana: # Name of the second backup
-    remote_host: server2.example.com
-    remote_port: 22
-    remote_user: user2
-    remote_keyfile: /labrackup/user2@server2.example.com
-    remote_path: /data/grafana/backups
-    local_path: /labrackup/backups/server2.example.com/grafana
-    local_rotate: -I '*_grafana-db.tar.gz' -d 7 -w 4 -m 12 # rotate-backup options,
-    # or as a string if only one rotation must be performed
   
   # Add as many backup sections as needed
 ```
