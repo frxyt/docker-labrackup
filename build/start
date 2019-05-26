@@ -31,16 +31,16 @@ function echo_dated() {
 }
 
 function die() {
-    echo_dated "${LIGHT_RED}[!] $1" >&2
+    echo_dated $2 "${LIGHT_RED}[!] $1" >&2
     exit 1;
 }
 
 function info() {
-    echo_dated "${LIGHT_BLUE}$1"
+    echo_dated $2 "${LIGHT_BLUE}$1"
 }
 
 function trace() {
-    echo_dated "${DARK_GRAY}$1"
+    echo_dated $2 "${DARK_GRAY}$1"
 }
 
 function trace_cmd() {
@@ -50,7 +50,7 @@ function trace_cmd() {
 }
 
 function success() {
-    echo_dated "${LIGHT_GREEN}$1"
+    echo_dated $2 "${LIGHT_GREEN}$1"
 }
 
 function get_backup_conf() {
@@ -122,7 +122,20 @@ function perform_backup() {
     ls -AshR ${local_path} | trace_cmd
     if [[ -n "${external_path}" ]]; then
         echo_dated "Uploading backuped files to external host..."
-        sshpass -p "${external_password}" rsync -ahve "ssh -p ${external_port}" ${local_path}/ ${external_user}@${external_host}:${external_path}/ | trace_cmd
+        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "mkdir ${external_path}"
+        local external_files="$(sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} 2>> /frx/start.log <<< "ls -l ${external_path}" | tail -n +2 | sed "s,${external_path}/,,g" | xargs -n 9 | cut -d' ' -f5,9)"
+        local local_files
+        local local_filename
+        mapfile -t local_files < <(ls -l ${local_path} | tail -n +2 | xargs -n 9 | cut -d' ' -f5,9)
+        for local_file in "${local_files[@]}"; do
+            if ! echo "${external_files}" | grep -q "${local_file}"; then
+                local_filename="$(echo "${local_file}" | cut -d' ' -f2)"
+                trace "Uploading '${local_filename}'... "
+                sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host}:${external_path} >> /frx/start.log 2>&1 <<< "put ${local_path}/${local_filename}"
+            fi
+        done
+        echo_dated "Disk space usage on external host:"
+        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} 2>> /frx/start.log <<< "df -h ${external_path}" | tail -n +2 | trace_cmd
     fi
 }
 

@@ -42,6 +42,10 @@ Labrackup helps you to retrieve backups of multiple servers / services and to pe
         local_rotate:
           - -I '*_gitlab_backup.tar' -d 7 -w 4 -m 12
           - -I '*_gitlab_config.tar.gz' -d 7 -w 4 -m 12
+        external_host: gateways.storage.OS_REGION_NAME.cloud.ovh.net
+        external_port: 22
+        external_user: pca
+        external_password: OS_TENANT_NAME.OS_USERNAME.OS_PASSWORD
     
       grafana:
         <<: *template_sample_host1
@@ -67,6 +71,11 @@ backups: # base node
     local_rotate: # rotate-backup options
       - -I '*_gitlab_backup.tar' -d 7 -w 4 -m 12
       - -I '*_gitlab_config.tar.gz' -d 7 -w 4 -m 12
+    # Following external_* keys are optional, and can be used to replicate retrieved backups elsewhere
+    external_host: gateways.storage.OS_REGION_NAME.cloud.ovh.net # IP or Hostname of the SFTP server 
+    external_port: 22 # SFTP Port
+    external_user: pca # SFTP User
+    external_password: OS_TENANT_NAME.OS_USERNAME.OS_PASSWORD # SFTP Password
   
   # Add as many backup sections as needed
 ```
