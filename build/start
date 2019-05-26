@@ -78,27 +78,31 @@ function check_backup_conf_type() {
 function check_backup_conf() {
     local backup="$1"
     check_backup_conf_type ${backup} remote_host string
-    check_backup_conf_type ${backup} remote_port number
+    check_backup_conf_type ${backup} remote_port 'number|null'
     check_backup_conf_type ${backup} remote_user string
     check_backup_conf_type ${backup} remote_keyfile string
     check_backup_conf_type ${backup} remote_path string
     check_backup_conf_type ${backup} local_path string
     check_backup_conf_type ${backup} local_rotate array
+    check_backup_conf_type ${backup} external_host 'string|null'
+    check_backup_conf_type ${backup} external_port 'number|null'
+    check_backup_conf_type ${backup} external_user 'string|null'
+    check_backup_conf_type ${backup} external_password 'string|null'
+    check_backup_conf_type ${backup} external_path 'string|null'
 }
 
 function perform_backup() {
     local backup="$1"
     local remote_host="$(get_backup_conf ${backup} remote_host)"
-    local remote_port="$(get_backup_conf ${backup} remote_port)"
+    local remote_port="$(get_backup_conf ${backup} remote_port)"; remote_port="${remote_port:-22}"
     local remote_user="$(get_backup_conf ${backup} remote_user)"
     local remote_keyfile="$(get_backup_conf ${backup} remote_keyfile)"
     local remote_path="$(get_backup_conf ${backup} remote_path)"
     local local_path="$(get_backup_conf ${backup} local_path)"
     local local_rotate; mapfile -t local_rotate < <(get_backup_conf ${backup} 'local_rotate[]')
     local external_host="$(get_backup_conf ${backup} external_host)"
-    local external_port="$(get_backup_conf ${backup} external_port)"
+    local external_port="$(get_backup_conf ${backup} external_port)"; external_port="${external_port:-22}"
     local external_user="$(get_backup_conf ${backup} external_user)"
-    local external_keyfile="$(get_backup_conf ${backup} external_keyfile)"
     local external_password="$(get_backup_conf ${backup} external_password)"
     local external_path="$(get_backup_conf ${backup} external_path)"
     mkdir -p ${local_path}
@@ -122,6 +126,10 @@ function perform_backup() {
     ls -AshR ${local_path} | trace_cmd
     if [[ -n "${external_path}" ]]; then
         echo_dated "Uploading backuped files to external host..."
+        check_backup_conf_type ${backup} external_host string
+        check_backup_conf_type ${backup} external_user string
+        check_backup_conf_type ${backup} external_password string
+        check_backup_conf_type ${backup} external_path string
         sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "mkdir ${external_path}"
         local external_files="$(sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} 2>> /frx/start.log <<< "ls -l ${external_path}" | tail -n +2 | sed "s,${external_path}/,,g" | xargs -n 9 | cut -d' ' -f5,9)"
         local local_files
