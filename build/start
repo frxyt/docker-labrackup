@@ -7,9 +7,11 @@
 # Stop on first error
 set -eE
 
-# Handle errors
+# Handle errors and debug
+((LABRACKUP_DEBUG > 0)) && touch /frx/start.log
+((LABRACKUP_DEBUG > 1)) && set -x
 function trap_err() {
-    die "Fatal Error: /frx/start:$1$(((LABRACKUP_DEBUG)) && echo && sed "$1q;d" /frx/start)"
+    die "Fatal Error: /frx/start:$1$(((LABRACKUP_DEBUG > 0)) && echo && sed "$1q;d" /frx/start && echo && cat /frx/start.log)"
 }
 trap 'trap_err $LINENO' ERR
 
@@ -91,6 +93,17 @@ function check_backup_conf() {
     check_backup_conf_type ${backup} external_path 'string|null'
 }
 
+function sftp_mkdir() {
+    local mkdir_path_full="$1"
+    local mkdir_path_last=''
+    local mkdir_command=''
+    local IFS='/'
+    for mkdir_path in ${mkdir_path_full}; do
+        echo "mkdir ${mkdir_path_last}${mkdir_path}"
+        mkdir_path_last="${mkdir_path_last}${mkdir_path}/"
+    done
+}
+
 function perform_backup() {
     local backup="$1"
     local remote_host="$(get_backup_conf ${backup} remote_host)"
@@ -130,7 +143,7 @@ function perform_backup() {
         check_backup_conf_type ${backup} external_user string
         check_backup_conf_type ${backup} external_password string
         check_backup_conf_type ${backup} external_path string
-        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "mkdir ${external_path}"
+        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "$(sftp_mkdir ${external_path})"
         local external_files="$(sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} 2>> /frx/start.log <<< "ls -l ${external_path}" | tail -n +2 | sed "s,${external_path}/,,g" | xargs -n 9 | cut -d' ' -f5,9)"
         local local_files
         local local_filename
