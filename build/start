@@ -230,6 +230,7 @@ done
 
 echo
 success "Done."
+((LABRACKUP_DEBUG > 1)) && cat /frx/start.log
 
 # Remove error handling
 trap - ERR
