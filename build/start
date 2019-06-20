@@ -168,6 +168,7 @@ function perform_backup() {
         } || ((external_error++))
         ((external_error > 0)) && ((external_error_count++))
     fi
+    echo
 }
 
 function display_disk_usage() {
@@ -219,7 +220,6 @@ echo
 for backup in "${backup_list[@]}"; do
     info "Performing backup: ${backup}..."
     perform_backup ${backup}
-    echo
 done
 set -e
 
