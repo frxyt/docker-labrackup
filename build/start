@@ -91,6 +91,7 @@ function check_backup_conf() {
     check_backup_conf_type ${backup} external_user 'string|null'
     check_backup_conf_type ${backup} external_password 'string|null'
     check_backup_conf_type ${backup} external_path 'string|null'
+    check_backup_conf_type ${backup} external_check_filesize 'string|null'
 }
 
 function sftp_mkdir() {
@@ -118,6 +119,7 @@ function perform_backup() {
     local external_user="$(get_backup_conf ${backup} external_user)"
     local external_password="$(get_backup_conf ${backup} external_password)"
     local external_path="$(get_backup_conf ${backup} external_path)"
+    local external_check_filesize="$(get_backup_conf ${backup} external_check_filesize)"
     mkdir -p ${local_path}
     backup_path_size[${local_path}]=$(du -b ${local_path} | cut -f1)
     echo_dated "Configuring SSH... " -n
@@ -154,7 +156,8 @@ function perform_backup() {
             for local_file in "${local_files[@]}"; do
                 local_filename="$(echo "${local_file}" | cut -d' ' -f2)"
                 [[ -d "${local_path}/${local_filename}" ]] && local_file="${local_filename}"
-                ((LABRACKUP_DEBUG > 1)) && trace "Checking: '${local_file}' ($(echo "${external_files}" | grep "${local_file#* }"))"
+                [[ "${external_check_filesize}" == "disabled" ]] && local_file="${local_filename}"
+                ((LABRACKUP_DEBUG > 1)) && trace "Checking: '${local_file}' ($(echo "${external_files}" | grep "${local_filename}"))"
                 if ! echo "${external_files}" | grep -q "${local_file}"; then
                     trace "Uploading '${local_filename}'... "
                     if [[ -n "${local_filename%/}" ]]; then

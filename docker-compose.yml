@@ -3,6 +3,6 @@ labrackup:
   #command: /labrackup/backups.yml
   environment:
     #- LABRACKUP_CONF_FILE=/labrackup/backups.yml
-    - LABRACKUP_DEBUG=1
+    - LABRACKUP_DEBUG=2
   volumes:
     - ./labrackup:/labrackup
