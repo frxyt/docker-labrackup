@@ -16,11 +16,11 @@ function trap_err() {
 trap 'trap_err $LINENO' ERR
 
 # Colors
-NC=$'\033[0m'
-DARK_GRAY=$'\033[1;30m'
-LIGHT_RED=$'\033[1;31m'
-LIGHT_GREEN=$'\033[1;32m'
-LIGHT_BLUE=$'\033[1;34m'
+declare NC=$'\033[0m'
+declare DARK_GRAY=$'\033[1;30m'
+declare LIGHT_RED=$'\033[1;31m'
+declare LIGHT_GREEN=$'\033[1;32m'
+declare LIGHT_BLUE=$'\033[1;34m'
 
 # Disable colors if they are not supported
 if [[ "$(tput colors 2> /dev/null)" == -1 || "$?" != 0 ]]; then
@@ -143,24 +143,29 @@ function perform_backup() {
         check_backup_conf_type ${backup} external_user string
         check_backup_conf_type ${backup} external_password string
         check_backup_conf_type ${backup} external_path string
-        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "$(sftp_mkdir ${external_path})"
-        local external_files="$(sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} 2>> /frx/start.log <<< "ls -l ${external_path}" | tail -n +2 | sed "s,${external_path}/,,g" | xargs -n 9 | cut -d' ' -f5,9)"
-        local local_files
-        local local_filename
-        mapfile -t local_files < <(ls -l ${local_path} | tail -n +2 | xargs -n 9 | cut -d' ' -f5,9)
-        for local_file in "${local_files[@]}"; do
-            local_filename="$(echo "${local_file}" | cut -d' ' -f2)"
-            [[ -d "${local_path}/${local_filename}" ]] && local_file="${local_filename}"
-            if ! echo "${external_files}" | grep -q "${local_file}"; then
-                trace "Uploading '${local_filename}'... "
-                if [[ -n "${local_filename%/}" ]]; then
-                    sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "$(sftp_mkdir ${external_path}/${local_filename%/})"
+        local external_error=0
+        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "$(sftp_mkdir ${external_path})" || external_error=1
+        if [[ "${external_error}" == 0 ]]; then
+            local external_files="$(sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} 2>> /frx/start.log <<< "ls -l ${external_path}" | tail -n +2 | sed "s,${external_path}/,,g" | xargs -n 9 | cut -d' ' -f5,9)"
+            local local_files
+            local local_filename
+            mapfile -t local_files < <(ls -l ${local_path} | tail -n +2 | xargs -n 9 | cut -d' ' -f5,9)
+            for local_file in "${local_files[@]}"; do
+                local_filename="$(echo "${local_file}" | cut -d' ' -f2)"
+                [[ -d "${local_path}/${local_filename}" ]] && local_file="${local_filename}"
+                if ! echo "${external_files}" | grep -q "${local_file}"; then
+                    trace "Uploading '${local_filename}'... "
+                    if [[ -n "${local_filename%/}" ]]; then
+                        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "$(sftp_mkdir ${external_path}/${local_filename%/})"
+                    fi
+                    sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host}:${external_path} >> /frx/start.log 2>&1 <<< "put -r ${local_path}/${local_filename}"
                 fi
-                sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host}:${external_path} >> /frx/start.log 2>&1 <<< "put -r ${local_path}/${local_filename}"
-            fi
-        done
-        echo_dated "Disk space usage on external host:"
-        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} 2>> /frx/start.log <<< "df -h ${external_path}" | tail -n +2 | trace_cmd
+            done
+            echo_dated "Disk space usage on external host:"
+            sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} 2>> /frx/start.log <<< "df -h ${external_path}" | tail -n +2 | trace_cmd
+        else
+            ((external_error_count++))
+        fi
     fi
 }
 
@@ -206,6 +211,7 @@ echo
 
 # Performing all backups
 declare -A backup_path_size
+declare -i external_error_count=0
 info "Running backups... "
 echo
 for backup in "${backup_list[@]}"; do
@@ -231,6 +237,8 @@ done
 echo
 success "Done."
 ((LABRACKUP_DEBUG > 1)) && cat /frx/start.log
+
+((external_error_count > 0)) && die "Errors encountered when uploading backups to external host."
 
 # Remove error handling
 trap - ERR
