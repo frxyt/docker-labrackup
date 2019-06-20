@@ -160,8 +160,8 @@ function perform_backup() {
                 ((LABRACKUP_DEBUG > 1)) && trace "Checking: '${local_file}' ($(echo "${external_files}" | grep "${local_filename}"))"
                 if ! echo "${external_files}" | grep -q "${local_file}"; then
                     trace "Uploading '${local_filename}'... "
-                    if [[ -n "${local_filename%/}" ]]; then
-                        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "$(sftp_mkdir ${external_path}/${local_filename%/})" || ((external_error++))
+                    if [[ -d "${local_path}/${local_filename}" ]]; then
+                        sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host} >> /frx/start.log 2>&1 <<< "$(sftp_mkdir ${external_path}/${local_filename})" || ((external_error++))
                     fi
                     sshpass -p "${external_password}" sftp -P ${external_port} ${external_user}@${external_host}:${external_path} >> /frx/start.log 2>&1 <<< "put -r ${local_path}/${local_filename}" || ((external_error++))
                 fi
